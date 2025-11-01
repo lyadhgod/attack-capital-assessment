@@ -1,6 +1,7 @@
+'use client';
+
+import { useActionState, useEffect } from "react";
 
 export default function Page() {
-  return (
-    <input value="+91-9073422105"/>
-  );
+  return null;
 }

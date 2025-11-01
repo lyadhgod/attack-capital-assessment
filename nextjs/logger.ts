@@ -1,6 +1,4 @@
-'use server';
-
-import { NODE_ENV } from "./env/server";
+import { NODE_ENV } from "@/env/server";
 
 export default function logger(
     level: 'debug' | 'info' | 'warn' | 'error',

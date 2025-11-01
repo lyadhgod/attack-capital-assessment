@@ -2,7 +2,7 @@
 
 import { RABBITMQ_URL } from "@/env/server";
 import { StructuredCloneable } from "@/types";
-import amqplib, { ChannelModel, Channel } from "amqplib";
+import amqplib, { ChannelModel, Channel, ConsumeMessage } from "amqplib";
 
 type Queue = 'twilio/voice/status'
 | 'twilio/voice/amd';
@@ -74,19 +74,44 @@ export async function consumeOnce<T extends StructuredCloneable>(
     if (!config.channelConsume) return;
 
     await config.channelConsume.assertQueue(name);
-    const promise = new Promise<T>(async (resolve) => {
-        await config.channelConsume!.consume(name, (msg) => {
+    
+    return new Promise<T>(async (resolve) => {
+        const state = {
+            consumerTag: undefined as string | undefined,
+            msg: undefined as ConsumeMessage | undefined,
+            filteredPayload: undefined as T | undefined,
+        };
+
+        const finalResolve = () => {
+            if (
+                state.msg === undefined ||
+                state.consumerTag === undefined ||
+                state.filteredPayload === undefined
+            ) return;
+
+            if (config.channelConsume) {
+                config.channelConsume.ack(state.msg);
+                if (state.consumerTag) {
+                    config.channelConsume.cancel(state.consumerTag);
+                }
+            }
+
+            resolve(state.filteredPayload);
+        }
+        
+        const consumeResult = await config.channelConsume!.consume(name, (msg) => {
             if (!msg) return;
 
             const payload = JSON.parse(msg.content.toString()) as T;
             if (!filter(payload)) return;
-                
-            if (!config.channelConsume) return;
-            config.channelConsume.ack(msg);
 
-            resolve(payload);
+            state.msg = msg;
+            state.filteredPayload = payload;
+            
+            finalResolve();
         });
+        
+        state.consumerTag = consumeResult.consumerTag;
+        finalResolve();
     });
-
-    return promise;
 }

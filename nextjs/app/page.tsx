@@ -4,6 +4,7 @@ import { call, CallResult } from "@/actions/call";
 import { ActionState, EnsureStructuredCloneable } from "@/types";
 import { useActionState, useEffect, useState } from "react";
 import betterAuthClient from "@/integrations/better-auth-client";
+import "@/integrations/socketio-client";
 
 const initialMakeCallState: ActionState<EnsureStructuredCloneable<CallResult>, null> = {
   status: 'idle',

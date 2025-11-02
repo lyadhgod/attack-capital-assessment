@@ -1,11 +1,8 @@
 'use client';
 
-import { NEXT_PUBLIC_FLASK_WEBSOCKET_URL } from "@/env/client";
 import { io } from "socket.io-client";
 
-const socket = io(NEXT_PUBLIC_FLASK_WEBSOCKET_URL, {
-  transports: ["websocket"],
-});
+const socket = io('/', { transports: ['websocket'], upgrade: false });
 
 export default socket;
 

@@ -9,8 +9,8 @@ const auth = betterAuth({
         provider: "postgresql",
     }),
     emailAndPassword: { 
-        enabled: true, 
-    }, 
+        enabled: true,
+    },
 });
 
 export default auth;

@@ -18,3 +18,6 @@ export const POSTGRES_DB = process.env.POSTGRES_DB ?? '';
 export const POSTGRES_DOMAIN = process.env.POSTGRES_DOMAIN ?? '';
 export const POSTGRES_PORT = process.env.POSTGRES_PORT ?? '';
 export const POSTGRES_URL = process.env.POSTGRES_URL ?? ''.replace(/\/$/, '');
+
+export const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET ?? '';
+export const BETTER_AUTH_URL = (process.env.BETTER_AUTH_URL ?? BASE_URL).replace(/\/$/, '');

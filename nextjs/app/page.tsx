@@ -44,18 +44,24 @@ export default function Page() {
             name="name"
             placeholder="Enter name"
             disabled={createUserPending}
+            value="Rounak"
+            readOnly={true}
           />
           <input
             type="text" 
             name="email"
             placeholder="Enter email"
             disabled={createUserPending}
+            value="rounak.tikadar@gmail.com"
+            readOnly={true}
           />
           <input
             type="password" 
             name="password"
             placeholder="Enter password"
             disabled={createUserPending}
+            value="password"
+            readOnly={true}
           />
           <button type="submit" disabled={createUserPending}>
             {createUserPending ? 'Creating...' : 'Create'}

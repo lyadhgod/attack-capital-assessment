@@ -13,10 +13,20 @@ export default function Page() {
   const [makeCallState, makeCallFormAction, makeCallPending] = useActionState(call, initialMakeCallState);
   const [createUserPending, setCreateUserPending] = useState(false);
   const [loginPending, setLoginPending] = useState(false);
+  const { 
+    data: sessionData,
+    isPending: sessionIsPending,
+    error: sessionError,
+    refetch: refetchSession
+  } = betterAuthClient.useSession()
 
   useEffect(() => {
     console.log('makeCallState', makeCallState);
   }, [makeCallState]);
+
+  useEffect(() => {
+    console.log('sessionData', sessionData);
+  }, [sessionData]);
 
   return (
     <main>

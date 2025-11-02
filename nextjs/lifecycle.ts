@@ -1,4 +1,4 @@
-'use server';
+
 
 import { configure as rabbitMQStartup, reset as rabbitMQShutdown } from "@/integrations/rabbitmq";
 

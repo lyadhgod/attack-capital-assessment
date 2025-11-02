@@ -1,4 +1,4 @@
-'use server';
+
 
 import { BASE_URL, TWILIO_PHONE_NUMBER } from '@/env/server';
 import logger from '@/logger';

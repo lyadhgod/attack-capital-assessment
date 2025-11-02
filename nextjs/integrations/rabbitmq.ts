@@ -1,4 +1,4 @@
-'use server';
+
 
 import { RABBITMQ_URL } from "@/env/server";
 import { StructuredCloneable } from "@/types";

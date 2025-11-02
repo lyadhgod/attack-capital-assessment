@@ -1,4 +1,4 @@
-'use server';
+
 
 import { publish } from "@/integrations/rabbitmq";
 import logger from "@/logger";

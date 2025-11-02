@@ -2,32 +2,82 @@
 
 import { call, CallResult } from "@/actions/call";
 import { ActionState, EnsureStructuredCloneable } from "@/types";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
+import betterAuthClient from "@/integrations/better-auth-client";
 
-const initialState: ActionState<EnsureStructuredCloneable<CallResult>, null> = {
+const initialMakeCallState: ActionState<EnsureStructuredCloneable<CallResult>, null> = {
   status: 'idle',
 }
 
 export default function Page() {
-  const [state, formAction, pending] = useActionState(call, initialState);
+  const [makeCallState, makeCallFormAction, makeCallPending] = useActionState(call, initialMakeCallState);
+  const [createUserPending, setCreateUserPending] = useState(false);
 
   useEffect(() => {
-    console.log(state);
-  }, [state]);
+    console.log('makeCallState', makeCallState);
+  }, [makeCallState]);
 
   return (
-    <form action={formAction}>
-      <input
-        type="text"
-        name="to"
-        placeholder="Enter phone number"
-        value="+919073422105"
-        disabled={pending}
-        readOnly={true}
-      />
-      <button type="submit" disabled={pending}>
-        {pending ? 'Calling...' : 'Call'}
-      </button>
-    </form>
+    <main>
+      <section>
+        <h1>Create user</h1>
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+
+          const form = e.target as HTMLFormElement;
+          const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+          const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+          const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+
+          setCreateUserPending(true);
+          try {
+            const { data, error } = await betterAuthClient.signUp.email({ name, email, password });
+            console.log('User created:', data, error);
+          } catch (error) {
+            console.error('Error creating user:', error);
+          } finally {
+            setCreateUserPending(false);
+          }
+        }}>
+          <input
+            type="text" 
+            name="name"
+            placeholder="Enter name"
+            disabled={createUserPending}
+          />
+          <input
+            type="text" 
+            name="email"
+            placeholder="Enter email"
+            disabled={createUserPending}
+          />
+          <input
+            type="password" 
+            name="password"
+            placeholder="Enter password"
+            disabled={createUserPending}
+          />
+          <button type="submit" disabled={createUserPending}>
+            {createUserPending ? 'Creating...' : 'Create'}
+          </button>
+        </form>
+      </section>
+      <section>
+        <h3>Make a Call</h3>
+        <form action={makeCallFormAction}>
+          <input
+            type="text"
+            name="to"
+            placeholder="Enter phone number"
+            value="+919073422105"
+            disabled={makeCallPending}
+            readOnly={true}
+          />
+          <button type="submit" disabled={makeCallPending}>
+            {makeCallPending ? 'Calling...' : 'Call'}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }

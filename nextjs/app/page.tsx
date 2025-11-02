@@ -12,6 +12,7 @@ const initialMakeCallState: ActionState<EnsureStructuredCloneable<CallResult>, n
 export default function Page() {
   const [makeCallState, makeCallFormAction, makeCallPending] = useActionState(call, initialMakeCallState);
   const [createUserPending, setCreateUserPending] = useState(false);
+  const [loginPending, setLoginPending] = useState(false);
 
   useEffect(() => {
     console.log('makeCallState', makeCallState);
@@ -19,6 +20,46 @@ export default function Page() {
 
   return (
     <main>
+      <section>
+        <h1>Login</h1>
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+
+          const form = e.target as HTMLFormElement;
+          const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+          const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+
+          setLoginPending(true);
+          try {
+            const { data, error } = await betterAuthClient.signIn.email({ email, password });
+            console.log('User logged in:', data, error);
+          } catch (error) {
+            console.error('Error logging in user:', error);
+          } finally {
+            setLoginPending(false);
+          }
+        }}>
+          <input
+            type="text" 
+            name="email"
+            placeholder="Enter email"
+            disabled={loginPending}
+            value="rounak.tikadar@gmail.com"
+            readOnly={true}
+          />
+          <input
+            type="password" 
+            name="password"
+            placeholder="Enter password"
+            disabled={loginPending}
+            value="password"
+            readOnly={true}
+          />
+          <button type="submit" disabled={loginPending}>
+            {loginPending ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      </section>
       <section>
         <h1>Create user</h1>
         <form onSubmit={async (e) => {

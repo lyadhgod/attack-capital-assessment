@@ -1,31 +1,31 @@
 'use server';
 
+import { publish } from "@/integrations/rabbitmq";
 import logger from "@/logger";
-import { NextRequest } from "next/server";
+import { EnsureStructuredCloneable, WebhookTwilioVoiceAmdParams } from "@/types";
+import querystring from 'querystring';
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-const postParamsSchema = z.object({
+const postParamsSchema = z.looseObject({
     callSid: z.string(),
-    accountSid: z.string(),
     answeredBy: z.enum(['machine_start', 'human', 'fax', 'unknown']),
-    machineDetectionDuration: z.coerce.number(),
 });
 
 export async function POST(req: NextRequest) {
-    const params = {
-        callSid: req.nextUrl.searchParams.get("CallSid"),
-        accountSid: req.nextUrl.searchParams.get("AccountSid"),
-        answeredBy: req.nextUrl.searchParams.get("AnsweredBy"),
-        machineDetectionDuration: req.nextUrl.searchParams.get("MachineDetectionDuration"),
-    };
-
     try {
-        const parsedParams = postParamsSchema.parse(params);
-        logger('info', "Valid parameters received in /webhook/twilio/voice/amd:", parsedParams);
+        const text = await req.text();
+        const params = querystring.parse(text);
+        const parsedParams = postParamsSchema.parse({
+            callSid: params.CallSid,
+            answeredBy: params.AnsweredBy,
+        }) as EnsureStructuredCloneable<WebhookTwilioVoiceAmdParams>;
+        logger('info', "Webhook received at /webhook/twilio/voice/amd with params:", parsedParams);
 
-        
+        publish('twilio/voice/amd', parsedParams);
     } catch (error) {
-        logger('error', "Invalid parameters received in /webhook/twilio/voice/amd:", error);
-        return new Response("Bad Request", { status: 400 });
+        logger('error', "Webhook failed at /webhook/twilio/voice/amd:", error);
     }
+
+    return new NextResponse(null, { status: 200 });
 }

@@ -24,3 +24,13 @@ export interface ActionState<T extends StructuredCloneable, R extends Structured
     data?: T;
     error?: R;
 }
+
+export interface WebhookTwilioVoiceAmdParams {
+  callSid: string;
+  answeredBy: 'machine_start' | 'human' | 'fax' | 'unknown';
+}
+
+export interface WebhookTwilioVoiceStatusParams {
+  callSid: string;
+  callStatus: 'queued' | 'initiated' | 'ringing' | 'in-progress' | 'completed' | 'busy' | 'failed' | 'no-answer';
+}

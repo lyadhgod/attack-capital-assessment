@@ -4,7 +4,7 @@ import { RABBITMQ_URL } from "@/env/server";
 import { StructuredCloneable } from "@/types";
 import amqplib, { ChannelModel, Channel, ConsumeMessage } from "amqplib";
 
-type Queue = 'twilio/voice/status'
+export type Queue = 'twilio/voice/status'
 | 'twilio/voice/amd';
 
 const config: {
@@ -60,7 +60,7 @@ export async function publish<T extends StructuredCloneable>(
     payload: T
 ) {
     await configure();
-    if (!config.channelPublish) return;
+    if (!config.channelPublish) throw new Error("RabbitMQ publish channel is not configured");
 
     await config.channelPublish.assertQueue(name);
     await config.channelPublish.sendToQueue(name, Buffer.from(JSON.stringify(payload)));
@@ -71,7 +71,7 @@ export async function consumeOnce<T extends StructuredCloneable>(
     filter: (payload: T) => boolean
 ) {
     await configure();
-    if (!config.channelConsume) return;
+    if (!config.channelConsume) throw new Error("RabbitMQ consume channel is not configured");
 
     await config.channelConsume.assertQueue(name);
     

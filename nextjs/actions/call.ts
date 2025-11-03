@@ -10,6 +10,8 @@ export interface CallResult {
     human: boolean;
 }
 
+export type CallProvider = 'twilio';
+
 export async function call(_prev: ActionState<EnsureStructuredCloneable<CallResult>, null>, formData: FormData): Promise<ActionState<EnsureStructuredCloneable<CallResult>, null>> {
     const to = formData.get('to') as string;
 

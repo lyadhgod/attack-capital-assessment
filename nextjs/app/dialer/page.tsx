@@ -1,11 +1,5 @@
-import { Metadata } from 'next';
 import DialerShell from './dialer-shell';
 import DialerHeaderClient from './dialer-header-client';
-
-export const metadata: Metadata = {
-  title: 'AMD Dialer - Make a Call',
-  description: 'Make intelligent voice calls with human detection',
-};
 
 export default function Page() {
   return (

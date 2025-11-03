@@ -1,14 +1,8 @@
 'use client';
 
-import { useReducer, useTransition } from 'react';
-import { useActionState } from 'react';
-import { signIn, signUp } from '@/actions/auth';
-import { ActionState, EnsureStructuredCloneable } from '@/types';
-
-interface AuthResult {
-  success: boolean;
-  message: string;
-}
+import { useReducer, useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { MdErrorOutline } from 'react-icons/md';
 
 interface FormState {
   formType: 'signin' | 'signup';
@@ -100,20 +94,10 @@ const initialFormState: FormState = {
   errors: {}
 };
 
-const initialAuthState: ActionState<EnsureStructuredCloneable<AuthResult>, string> = {
-  status: 'idle',
-};
-
-export default function LandingFormClient() {
+export default function Form() {
   const [formState, formDispatch] = useReducer(formReducer, initialFormState);
-  const [signInState, signInAction, signInPending] = useActionState(signIn, initialAuthState);
-  const [signUpState, signUpAction, signUpPending] = useActionState(signUp, initialAuthState);
-  const [isPending, startTransition] = useTransition();
-  
-  const authState = formState.formType === 'signin' ? signInState : signUpState;
-  const authAction = formState.formType === 'signin' ? signInAction : signUpAction;
-  const authPending = formState.formType === 'signin' ? signInPending : signUpPending;
-  const isFormPending = authPending || isPending;
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, error: authError } = useAuth();
 
   const validateForm = (): boolean => {
     formDispatch({ type: 'CLEAR_ERRORS' });
@@ -137,7 +121,6 @@ export default function LandingFormClient() {
       isValid = false;
     }
 
-    // Sign up specific validations
     if (formState.formType === 'signup') {
       if (!formState.name.trim()) {
         formDispatch({ type: 'SET_ERROR', payload: { field: 'name', message: 'Name is required' } });
@@ -156,33 +139,54 @@ export default function LandingFormClient() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm() || isFormPending) return;
+    if (!validateForm() || isLoading) return;
 
-    const formData = new FormData();
-    formData.append('email', formState.email);
-    formData.append('password', formState.password);
-    if (formState.formType === 'signup') {
-      formData.append('name', formState.name);
-    }
+    setIsLoading(true);
+    formDispatch({ type: 'CLEAR_ERRORS' });
     
-    startTransition(() => {
-      authAction(formData);
-    });
+    try {
+      let result;
+      if (formState.formType === 'signin') {
+        result = await signIn(formState.email, formState.password);
+      } else {
+        result = await signUp(formState.name, formState.email, formState.password);
+      }
+      
+      // Handle authentication failure
+      if (!result?.success) {
+        const errorMessage = result?.error || 'Authentication failed. Please try again.';
+        formDispatch({ 
+          type: 'SET_ERROR', 
+          payload: { field: 'general', message: errorMessage } 
+        });
+      }
+      // If successful, form will redirect via auth context
+    } catch (error) {
+      console.error('Form submission error:', error);
+      formDispatch({ 
+        type: 'SET_ERROR', 
+        payload: { 
+          field: 'general', 
+          message: 'An unexpected error occurred. Please try again.' 
+        } 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="card bg-base-100 w-full max-w-md shadow-xl">
-      <div className="card-body">
-        {/* Form Type Tabs */}
+    <div className="card bg-base-100 w-full max-w-md min-w-[384px] shadow-xl">
+      <div className="card-body p-6">
         <div className="tabs tabs-boxed mb-6">
           <button 
             type="button"
             onClick={() => formDispatch({ type: 'SET_FORM_TYPE', payload: 'signin' })}
             className={`tab tab-lg flex-1 ${formState.formType === 'signin' ? 'tab-active' : ''}`}
-            disabled={isFormPending}
+            disabled={isLoading}
           >
             Sign In
           </button>
@@ -190,7 +194,7 @@ export default function LandingFormClient() {
             type="button"
             onClick={() => formDispatch({ type: 'SET_FORM_TYPE', payload: 'signup' })}
             className={`tab tab-lg flex-1 ${formState.formType === 'signup' ? 'tab-active' : ''}`}
-            disabled={isFormPending}
+            disabled={isLoading}
           >
             Sign Up
           </button>
@@ -201,7 +205,6 @@ export default function LandingFormClient() {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field (Sign Up Only) */}
           {formState.formType === 'signup' && (
             <div className="form-control">
               <label className="label">
@@ -213,8 +216,7 @@ export default function LandingFormClient() {
                 className={`input input-bordered w-full ${formState.errors.name ? 'input-error' : ''}`}
                 value={formState.name}
                 onChange={(e) => formDispatch({ type: 'SET_NAME', payload: e.target.value })}
-                disabled={isFormPending}
-                required={formState.formType === 'signup'}
+                disabled={isLoading}
               />
               {formState.errors.name && (
                 <label className="label">
@@ -224,19 +226,17 @@ export default function LandingFormClient() {
             </div>
           )}
 
-          {/* Email Field */}
           <div className="form-control">
             <label className="label">
               <span className="label-text">Email</span>
             </label>
             <input
-              type="email"
+              type="text"
               placeholder="Enter your email"
               className={`input input-bordered w-full ${formState.errors.email ? 'input-error' : ''}`}
               value={formState.email}
               onChange={(e) => formDispatch({ type: 'SET_EMAIL', payload: e.target.value })}
-              disabled={isFormPending}
-              required
+              disabled={isLoading}
             />
             {formState.errors.email && (
               <label className="label">
@@ -245,7 +245,6 @@ export default function LandingFormClient() {
             )}
           </div>
 
-          {/* Password Field */}
           <div className="form-control">
             <label className="label">
               <span className="label-text">Password</span>
@@ -256,8 +255,7 @@ export default function LandingFormClient() {
               className={`input input-bordered w-full ${formState.errors.password ? 'input-error' : ''}`}
               value={formState.password}
               onChange={(e) => formDispatch({ type: 'SET_PASSWORD', payload: e.target.value })}
-              disabled={isFormPending}
-              required
+              disabled={isLoading}
             />
             {formState.errors.password && (
               <label className="label">
@@ -266,7 +264,6 @@ export default function LandingFormClient() {
             )}
           </div>
 
-          {/* Confirm Password Field (Sign Up Only) */}
           {formState.formType === 'signup' && (
             <div className="form-control">
               <label className="label">
@@ -278,8 +275,7 @@ export default function LandingFormClient() {
                 className={`input input-bordered w-full ${formState.errors.confirmPassword ? 'input-error' : ''}`}
                 value={formState.confirmPassword}
                 onChange={(e) => formDispatch({ type: 'SET_CONFIRM_PASSWORD', payload: e.target.value })}
-                disabled={isFormPending}
-                required={formState.formType === 'signup'}
+                disabled={isLoading}
               />
               {formState.errors.confirmPassword && (
                 <label className="label">
@@ -289,24 +285,22 @@ export default function LandingFormClient() {
             </div>
           )}
 
-          {/* General Error Display */}
-          {(formState.errors.general || authState.status === 'error') && (
+          {(formState.errors.general || authError) && (
             <div className="alert alert-error">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{formState.errors.general || 'Authentication failed. Please try again.'}</span>
+              <MdErrorOutline className="flex-shrink-0" />
+              <span className="text-sm">
+                {formState.errors.general || authError || 'Authentication failed. Please try again.'}
+              </span>
             </div>
           )}
 
-          {/* Submit Button */}
           <div className="form-control mt-6">
             <button 
               type="submit" 
               className="btn btn-primary w-full"
-              disabled={isFormPending}
+              disabled={isLoading}
             >
-              {isFormPending ? (
+              {isLoading ? (
                 <>
                   <span className="loading loading-spinner"></span>
                   {formState.formType === 'signin' ? 'Signing In...' : 'Creating Account...'}
@@ -317,24 +311,6 @@ export default function LandingFormClient() {
             </button>
           </div>
         </form>
-
-        <div className="divider">OR</div>
-        
-        {/* Alternative Action */}
-        <p className="text-center text-sm">
-          {formState.formType === 'signin' ? "Don't have an account? " : "Already have an account? "}
-          <button 
-            type="button"
-            onClick={() => formDispatch({ 
-              type: 'SET_FORM_TYPE', 
-              payload: formState.formType === 'signin' ? 'signup' : 'signin' 
-            })}
-            className="link link-primary"
-            disabled={isFormPending}
-          >
-            {formState.formType === 'signin' ? 'Sign up here' : 'Sign in here'}
-          </button>
-        </p>
       </div>
     </div>
   );

@@ -106,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
       const { data, error } = await betterAuthClient.signIn.email({ email, password });
       
@@ -139,7 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (name: string, email: string, password: string) => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
       const { data, error } = await betterAuthClient.signUp.email({ name, email, password });
       

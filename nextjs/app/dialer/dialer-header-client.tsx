@@ -12,7 +12,7 @@ export default function DialerHeaderClient() {
     if (!isLoading && !user) {
       router.push('/');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]);
 
   if (isLoading) {
     return (
@@ -23,7 +23,7 @@ export default function DialerHeaderClient() {
   }
 
   if (!user) {
-    return null; // Will redirect
+    return null;
   }
 
   return (

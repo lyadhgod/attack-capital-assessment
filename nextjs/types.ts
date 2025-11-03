@@ -1,3 +1,5 @@
+import { Twilio } from "twilio";
+
 export type SerializablePrimitive = string | number | boolean | null;
 
 export type AllowedLeaf = SerializablePrimitive | Date | RegExp;
@@ -27,10 +29,14 @@ export interface ActionState<T extends StructuredCloneable, R extends Structured
 
 export interface WebhookTwilioVoiceAmdParams {
   callSid: string;
-  answeredBy: 'machine_start' | 'human' | 'fax' | 'unknown';
+  answeredBy: TwilioVoiceAnsweredBy;
 }
 
 export interface WebhookTwilioVoiceStatusParams {
   callSid: string;
-  callStatus: 'queued' | 'initiated' | 'ringing' | 'in-progress' | 'completed' | 'busy' | 'failed' | 'no-answer';
+  callStatus: TwilioVoiceVoiceStatus;
 }
+
+export type TwilioVoiceAnsweredBy = 'machine_start' | 'human' | 'fax' | 'unknown';
+
+export type TwilioVoiceVoiceStatus = 'queued' | 'initiated' | 'ringing' | 'in-progress' | 'completed' | 'busy' | 'failed' | 'no-answer';

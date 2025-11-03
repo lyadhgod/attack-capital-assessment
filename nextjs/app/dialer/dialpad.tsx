@@ -8,6 +8,7 @@ import { MdErrorOutline, MdOutlineDeleteForever } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import { IoCallOutline } from 'react-icons/io5';
 import { FaRegGrinTongueWink } from 'react-icons/fa';
+import { useAuth } from '@/contexts/auth-context';
 
 const PHONE_DIGITS = 10; // For US phone numbers (excluding country code)
 
@@ -51,7 +52,8 @@ const initialMakeCallState: ActionState<EnsureStructuredCloneable<CallResult>, n
 export default function Dialpad() {
   const [state, dispatch] = useReducer(phoneDialerReducer, initialDialerState);
   const [makeCallState, makeCallFormAction, makeCallPending] = useActionState(call, initialMakeCallState);
-  
+  const { user } = useAuth();
+
   const formatPhoneNumber = () => {
     if (state.phoneNumber.length === 10) {
       return `${state.countryCode}${state.phoneNumber}`;
@@ -72,6 +74,8 @@ export default function Dialpad() {
 
   const handleSubmit = (formData: FormData) => {
     if (!isValidPhoneNumber || makeCallPending) return;
+
+    formData.append('userId', user?.id ?? '');
     
     makeCallFormAction(formData);
   };
@@ -110,8 +114,6 @@ export default function Dialpad() {
       <input type="hidden" name="to" value={formatPhoneNumber()} />
       {/* Hidden input for provider */}
       <input type="hidden" name="provider" value={state.provider} />
-      
-      
 
       {/* Phone Number Display */}
       <div className="text-center">
@@ -204,14 +206,9 @@ export default function Dialpad() {
       {/* Call Status Display */}
       {makeCallState.status === 'success' && makeCallState.data && (
         <div className={`alert ${makeCallState.data.human ? 'alert-success' : 'alert-warning'}`}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={makeCallState.data.human ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"} />
-          </svg>
-          <span>
             {makeCallState.data.human 
-              ? <><FaRegGrinTongueWink /> Human detected! Call successful.</>
-              : <><IoCallOutline /> Machine detected. Call terminated.</>}
-          </span>
+              ? <span><FaRegGrinTongueWink /> Human detected! Call successful.</span>
+              : <span><IoCallOutline /> Machine detected. Call terminated.</span>}
         </div>
       )}
 

@@ -17,9 +17,10 @@ export type CallProvider = 'twilio';
 export async function call(_prev: ActionState<EnsureStructuredCloneable<CallResult>, null>, formData: FormData): Promise<ActionState<EnsureStructuredCloneable<CallResult>, null>> {
     const to = formData.get('to') as string;
     const userId = formData.get('userId') as string;
+    const socketId = formData.get('socketId') as string;
 
     try {
-        const { callSid } = await twilioCall(to);
+        const { callSid } = await twilioCall(to, socketId);
 
         const keyedConsumer = async (key: Queue) => new Promise(async (
             resolve: (result:

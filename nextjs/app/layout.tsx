@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/contexts/auth-context';
-import "@/integrations/socketio-client";
+import WebSocketContextProvider from "@/contexts/websocket-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,9 +29,11 @@ export default function Layout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <WebSocketContextProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </WebSocketContextProvider>
       </body>
     </html>
   );

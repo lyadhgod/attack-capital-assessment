@@ -40,3 +40,19 @@ export interface WebhookTwilioVoiceStatusParams {
 export type TwilioVoiceAnsweredBy = 'machine_start' | 'human' | 'fax' | 'unknown';
 
 export type TwilioVoiceVoiceStatus = 'queued' | 'initiated' | 'ringing' | 'in-progress' | 'completed' | 'busy' | 'failed' | 'no-answer';
+
+export type EventEmitterEvent = "webhook:twilio/voice/status"
+| "webhook:twilio/voice/amd";
+
+export interface EventEmitterPayload<T> {
+  event: EventEmitterEvent;
+  data: T;
+}
+
+export interface EventEmitterWebhookPayload<T> extends EventEmitterPayload<T> {
+  socketId: string;
+}
+
+export type WebhookTwilioVoiceStatusEvent = EventEmitterWebhookPayload<WebhookTwilioVoiceStatusParams>;
+
+export type WebhookTwilioVoiceAmdDetectedEvent = EventEmitterWebhookPayload<WebhookTwilioVoiceAmdParams>;

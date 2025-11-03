@@ -5,7 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import querystring from 'querystring';
 import { publish } from "@/integrations/rabbitmq";
-import { EnsureStructuredCloneable, WebhookTwilioVoiceStatusParams } from "@/types";
+import { EnsureStructuredCloneable, EventEmitterEvent, WebhookTwilioVoiceStatusEvent, WebhookTwilioVoiceStatusParams } from "@/types";
+import events from "@/events";
 
 const postParamsSchema = z.looseObject({
     callSid: z.string(),
@@ -23,6 +24,15 @@ export async function POST(req: NextRequest) {
         logger('info', "Valid parameters received in /webhook/twilio/voice/status:", parsedParams);
 
         publish('twilio/voice/status', parsedParams);
+
+        const searchParams = req.nextUrl.searchParams;
+        const socketId = searchParams.get('socketId');
+        console.log("Socket ID from query params:", socketId);
+        events.emit("webhook:twilio/voice/status" as EventEmitterEvent, {
+            event: "webhook:twilio/voice/status",
+            data: parsedParams,
+            socketId: socketId,
+        } as WebhookTwilioVoiceStatusEvent);
     } catch (error) {
         logger('error', "Invalid parameters received in /webhook/twilio/voice/status:", error);
     }

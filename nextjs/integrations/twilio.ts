@@ -6,7 +6,7 @@ import twilio from 'twilio';
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-export async function call(to: string) {
+export async function call(to: string, socketId: string) {
     try {
         const call = await client.calls.create({
             to,
@@ -14,8 +14,8 @@ export async function call(to: string) {
             twiml: '<Response><Pause length="10"/><Hangup/></Response>',
             machineDetection: 'Enable',
             asyncAmd: 'true',
-            asyncAmdStatusCallback: `${BASE_URL}/webhook/twilio/voice/amd`,
-            statusCallback: `${BASE_URL}/webhook/twilio/voice/status`,
+            asyncAmdStatusCallback: `${BASE_URL}/webhook/twilio/voice/amd?socketId=${socketId}`,
+            statusCallback: `${BASE_URL}/webhook/twilio/voice/status?socketId=${socketId}`,
         });
         logger('info', 'Twilio call initiated', {
             to,

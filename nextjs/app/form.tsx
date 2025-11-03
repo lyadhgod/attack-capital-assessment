@@ -287,7 +287,7 @@ export default function Form() {
 
           {(formState.errors.general || authError) && (
             <div className="alert alert-error">
-              <MdErrorOutline className="flex-shrink-0" />
+              <MdErrorOutline className="flex-shrink-0" /> 
               <span className="text-sm">
                 {formState.errors.general || authError || 'Authentication failed. Please try again.'}
               </span>

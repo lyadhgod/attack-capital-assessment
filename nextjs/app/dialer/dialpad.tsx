@@ -9,6 +9,8 @@ import { FaDeleteLeft } from 'react-icons/fa6';
 import { IoCallOutline } from 'react-icons/io5';
 import { FaRegGrinTongueWink } from 'react-icons/fa';
 import { useAuth } from '@/contexts/auth-context';
+import { BsRobot } from 'react-icons/bs';
+import socket from '@/integrations/socketio-client';
 
 const PHONE_DIGITS = 10; // For US phone numbers (excluding country code)
 
@@ -76,6 +78,7 @@ export default function Dialpad() {
     if (!isValidPhoneNumber || makeCallPending) return;
 
     formData.append('userId', user?.id ?? '');
+    formData.append('socketId', socket.id ?? '');
     
     makeCallFormAction(formData);
   };
@@ -207,8 +210,8 @@ export default function Dialpad() {
       {makeCallState.status === 'success' && makeCallState.data && (
         <div className={`alert ${makeCallState.data.human ? 'alert-success' : 'alert-warning'}`}>
             {makeCallState.data.human 
-              ? <span><FaRegGrinTongueWink /> Human detected! Call successful.</span>
-              : <span><IoCallOutline /> Machine detected. Call terminated.</span>}
+              ? <><FaRegGrinTongueWink /> Human detected! Call successful.</>
+              : <><BsRobot /> Machine detected. Call terminated.</>}
         </div>
       )}
 
